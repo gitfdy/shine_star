@@ -6,27 +6,23 @@
 ```
 移动端 App (Flutter)
     ↓
-Supabase Auth (认证)
-    ↓
-媒体输入 → 本地处理 → Supabase Storage (文件存储)
+媒体输入 → 本地处理 → 本地存储 (Hive/SQLite)
     ↓
 AI处理服务
-├── Google Speech-to-Text (语音转文字)
-├── Google Vision API (图片OCR)
-└── OpenAI GPT-4 (内容分析)
+├── OpenAI GPT-4 (内容分析)
+├── Google Speech-to-Text (语音转文字) - 可选
+└── Google Vision API (图片OCR) - 可选
     ↓
-Supabase Database (数据存储)
-    ↓
-实时同步 → 移动端展示
+本地数据展示和分析
 ```
 
 ### 1.2 技术栈选择理由
 | 技术 | 选择理由 | 替代方案 |
 |------|----------|----------|
 | Flutter | 跨平台开发，性能优秀，UI一致性好 | React Native, Ionic |
-| Supabase | 快速开发，内置认证和实时功能 | Firebase, AWS |
+| Hive/SQLite | 本地存储，无需网络，数据安全 | SharedPreferences, Realm |
 | OpenAI GPT-4 | AI分析能力强，API稳定 | Claude, PaLM |
-| Google Pay | 欧美用户偏好，集成简单 | Stripe, PayPal |
+| GetX | 状态管理、路由、依赖注入一体化 | Provider, Riverpod |
 
 ## 2. 前端架构
 
@@ -67,78 +63,136 @@ lib/
 ### 2.2 状态管理
 ```dart
 // GetX 状态管理结构
-class AuthController extends GetxController {
-  final user = Rxn<User>();
-  final isAuthenticated = false.obs;
-  final loading = false.obs;
-}
-
 class IdeasController extends GetxController {
   final items = <Idea>[].obs;
   final loading = false.obs;
   final error = Rxn<String>();
+  
+  // 本地存储操作
+  Future<void> saveIdea(Idea idea) async {
+    // 保存到本地存储
+  }
+  
+  Future<void> loadIdeas() async {
+    // 从本地存储加载
+  }
 }
 
 class AnalysisController extends GetxController {
   final currentAnalysis = Rxn<Analysis>();
   final loading = false.obs;
   final error = Rxn<String>();
+  
+  // AI分析操作
+  Future<void> analyzeIdeas(List<Idea> ideas) async {
+    // 调用OpenAI API
+  }
 }
 
 class SettingsController extends GetxController {
   final language = 'en'.obs;
   final notifications = true.obs;
-  final autoSync = true.obs;
-}
-```
-
-## 3. 后端架构
-
-### 3.1 Supabase 配置
-```dart
-// Supabase 客户端配置
-class SupabaseService {
-  static final SupabaseClient _client = SupabaseClient(
-    'YOUR_SUPABASE_URL',
-    'YOUR_SUPABASE_ANON_KEY',
-  );
+  final autoBackup = true.obs;
   
-  static SupabaseClient get client => _client;
-  
-  static Future<void> initialize() async {
-    await _client.auth.onAuthStateChange.listen((data, session) {
-      // 处理认证状态变化
-    });
+  // 本地设置管理
+  Future<void> saveSettings() async {
+    // 保存到本地存储
   }
 }
 ```
 
-### 3.2 数据库设计
-```sql
--- 启用行级安全策略
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ideas ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ai_analyses ENABLE ROW LEVEL SECURITY;
+## 3. 本地存储架构
 
--- 用户表策略
-CREATE POLICY "Users can view own profile" ON users
-  FOR SELECT USING (auth.uid() = id);
+### 3.1 本地存储配置
+```dart
+// 本地存储配置
+class LocalStorageService {
+  static late Box _ideasBox;
+  static late Box _settingsBox;
+  
+  static Future<void> initialize() async {
+    await Hive.initFlutter();
+    _ideasBox = await Hive.openBox('ideas');
+    _settingsBox = await Hive.openBox('settings');
+  }
+  
+  // 想法数据操作
+  static Future<void> saveIdea(Idea idea) async {
+    await _ideasBox.put(idea.id, idea.toJson());
+  }
+  
+  static Future<List<Idea>> loadIdeas() async {
+    final data = _ideasBox.values.toList();
+    return data.map((json) => Idea.fromJson(json)).toList();
+  }
+  
+  // 设置数据操作
+  static Future<void> saveSettings(Map<String, dynamic> settings) async {
+    await _settingsBox.put('app_settings', settings);
+  }
+  
+  static Map<String, dynamic> loadSettings() {
+    return _settingsBox.get('app_settings', defaultValue: {});
+  }
+}
+```
 
-CREATE POLICY "Users can update own profile" ON users
-  FOR UPDATE USING (auth.uid() = id);
-
--- 想法表策略
-CREATE POLICY "Users can view own ideas" ON ideas
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own ideas" ON ideas
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own ideas" ON ideas
-  FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own ideas" ON ideas
-  FOR DELETE USING (auth.uid() = user_id);
+### 3.2 本地数据模型
+```dart
+// 想法数据模型
+@HiveType(typeId: 0)
+class Idea extends HiveObject {
+  @HiveField(0)
+  String id;
+  
+  @HiveField(1)
+  String title;
+  
+  @HiveField(2)
+  String content;
+  
+  @HiveField(3)
+  String contentType; // text, voice, image
+  
+  @HiveField(4)
+  DateTime createdAt;
+  
+  @HiveField(5)
+  List<String> tags;
+  
+  @HiveField(6)
+  String? mediaPath; // 本地文件路径
+  
+  Idea({
+    required this.id,
+    required this.title,
+    required this.content,
+    required this.contentType,
+    required this.createdAt,
+    required this.tags,
+    this.mediaPath,
+  });
+  
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'content': content,
+    'contentType': contentType,
+    'createdAt': createdAt.toIso8601String(),
+    'tags': tags,
+    'mediaPath': mediaPath,
+  };
+  
+  factory Idea.fromJson(Map<String, dynamic> json) => Idea(
+    id: json['id'],
+    title: json['title'],
+    content: json['content'],
+    contentType: json['contentType'],
+    createdAt: DateTime.parse(json['createdAt']),
+    tags: List<String>.from(json['tags']),
+    mediaPath: json['mediaPath'],
+  );
+}
 ```
 
 ## 4. AI服务架构

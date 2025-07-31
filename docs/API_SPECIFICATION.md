@@ -3,185 +3,158 @@
 ## 1. 概述
 
 ### 1.1 API 基础信息
-- **基础URL**: `https://your-project.supabase.co`
-- **认证方式**: Bearer Token (JWT)
+- **存储方式**: 本地存储 (Hive/SQLite)
 - **数据格式**: JSON
 - **字符编码**: UTF-8
+- **无需网络**: 所有操作在本地完成
 
-### 1.2 认证流程
+### 1.2 本地存储流程
 ```dart
-// 获取访问令牌
-final session = await Supabase.instance.client.auth.currentSession;
-final accessToken = session?.accessToken;
+// 初始化本地存储
+await Hive.initFlutter();
+await LocalStorageService.initialize();
 
-// 在请求头中使用
-final headers = {
-  'Authorization': 'Bearer $accessToken',
-  'Content-Type': 'application/json'
-};
+// 数据操作示例
+final ideas = await LocalStorageService.loadIdeas();
+await LocalStorageService.saveIdea(newIdea);
 ```
 
-## 2. 用户认证 API
+## 2. 本地存储 API
 
-### 2.1 Google OAuth 登录
-```javascript
-// 请求
-POST /auth/v1/token
-Content-Type: application/json
-
-{
-  "grant_type": "id_token",
-  "provider": "google",
-  "id_token": "google_id_token"
+### 2.1 本地数据操作
+```dart
+// 保存想法到本地
+Future<void> saveIdea(Idea idea) async {
+  await LocalStorageService.saveIdea(idea);
 }
 
-// 响应
-{
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refresh_token": "refresh_token_here",
-  "expires_in": 3600,
-  "token_type": "bearer",
-  "user": {
-    "id": "uuid",
-    "email": "user@example.com",
-    "google_id": "google_user_id",
-    "display_name": "User Name",
-    "avatar_url": "https://..."
-  }
+// 从本地加载想法
+Future<List<Idea>> loadIdeas() async {
+  return await LocalStorageService.loadIdeas();
+}
+
+// 删除本地想法
+Future<void> deleteIdea(String ideaId) async {
+  await LocalStorageService.deleteIdea(ideaId);
+}
+
+// 更新本地想法
+Future<void> updateIdea(Idea idea) async {
+  await LocalStorageService.updateIdea(idea);
 }
 ```
 
-### 2.2 获取用户信息
-```javascript
-// 请求
-GET /auth/v1/user
-Authorization: Bearer {access_token}
+### 2.2 本地设置管理
+```dart
+// 保存应用设置
+Future<void> saveSettings(Map<String, dynamic> settings) async {
+  await LocalStorageService.saveSettings(settings);
+}
 
-// 响应
-{
-  "id": "uuid",
-  "email": "user@example.com",
-  "google_id": "google_user_id",
-  "display_name": "User Name",
-  "avatar_url": "https://...",
-  "subscription_status": "free",
-  "subscription_end": "2024-12-31T23:59:59Z",
-  "language_preference": "en",
-  "created_at": "2024-01-01T00:00:00Z",
-  "updated_at": "2024-01-01T00:00:00Z"
+// 加载应用设置
+Map<String, dynamic> loadSettings() {
+  return LocalStorageService.loadSettings();
+}
+
+// 重置所有设置
+Future<void> resetSettings() async {
+  await LocalStorageService.resetSettings();
 }
 ```
 
-### 2.3 更新用户信息
-```javascript
-// 请求
-PUT /rest/v1/users?id=eq.{user_id}
-Authorization: Bearer {access_token}
-Content-Type: application/json
-
-{
-  "display_name": "New Name",
-  "language_preference": "es",
-  "subscription_status": "active"
+### 2.3 数据备份和恢复
+```dart
+// 导出数据
+Future<String> exportData() async {
+  final ideas = await LocalStorageService.loadIdeas();
+  final settings = LocalStorageService.loadSettings();
+  return jsonEncode({
+    'ideas': ideas.map((idea) => idea.toJson()).toList(),
+    'settings': settings,
+    'exportDate': DateTime.now().toIso8601String(),
+  });
 }
 
-// 响应
-{
-  "id": "uuid",
-  "display_name": "New Name",
-  "language_preference": "es",
-  "updated_at": "2024-01-01T00:00:00Z"
+// 导入数据
+Future<void> importData(String jsonData) async {
+  final data = jsonDecode(jsonData);
+  // 验证数据格式
+  // 导入想法数据
+  // 导入设置数据
 }
 ```
 
 ## 3. 想法记录 API
 
 ### 3.1 创建想法记录
-```javascript
-// 请求
-POST /rest/v1/ideas
-Authorization: Bearer {access_token}
-Content-Type: application/json
-
-{
-  "title": "我的想法标题",
-  "content": "想法内容",
-  "content_type": "text", // text, voice, image
-  "media_url": "https://storage.supabase.co/...",
-  "file_size": 1024000,
-  "duration": 120, // 音频时长（秒）
-  "ocr_text": "从图片识别的文字",
-  "transcript": "语音转文字结果",
-  "tags": ["business", "technology"],
-  "date": "2024-12-01"
-}
-
-// 响应
-{
-  "id": "uuid",
-  "user_id": "user_uuid",
-  "title": "我的想法标题",
-  "content": "想法内容",
-  "content_type": "text",
-  "media_url": "https://storage.supabase.co/...",
-  "file_size": 1024000,
-  "duration": 120,
-  "ocr_text": "从图片识别的文字",
-  "transcript": "语音转文字结果",
-  "tags": ["business", "technology"],
-  "date": "2024-12-01",
-  "created_at": "2024-12-01T10:00:00Z",
-  "updated_at": "2024-12-01T10:00:00Z"
+```dart
+// 创建新想法
+Future<Idea> createIdea({
+  required String title,
+  required String content,
+  required String contentType,
+  List<String> tags = const [],
+  String? mediaPath,
+}) async {
+  final idea = Idea(
+    id: DateTime.now().millisecondsSinceEpoch.toString(),
+    title: title,
+    content: content,
+    contentType: contentType,
+    createdAt: DateTime.now(),
+    tags: tags,
+    mediaPath: mediaPath,
+  );
+  
+  await LocalStorageService.saveIdea(idea);
+  return idea;
 }
 ```
 
 ### 3.2 获取想法列表
-```javascript
-// 请求
-GET /rest/v1/ideas?user_id=eq.{user_id}&date=eq.{date}&order=created_at.desc
-Authorization: Bearer {access_token}
+```dart
+// 获取所有想法
+Future<List<Idea>> getAllIdeas() async {
+  return await LocalStorageService.loadIdeas();
+}
 
-// 响应
-[
-  {
-    "id": "uuid",
-    "user_id": "user_uuid",
-    "title": "想法标题",
-    "content": "想法内容",
-    "content_type": "text",
-    "media_url": "https://storage.supabase.co/...",
-    "file_size": 1024000,
-    "duration": 120,
-    "ocr_text": "从图片识别的文字",
-    "transcript": "语音转文字结果",
-    "tags": ["business", "technology"],
-    "date": "2024-12-01",
-    "created_at": "2024-12-01T10:00:00Z",
-    "updated_at": "2024-12-01T10:00:00Z"
-  }
-]
+// 按日期获取想法
+Future<List<Idea>> getIdeasByDate(DateTime date) async {
+  final allIdeas = await LocalStorageService.loadIdeas();
+  return allIdeas.where((idea) => 
+    idea.createdAt.year == date.year &&
+    idea.createdAt.month == date.month &&
+    idea.createdAt.day == date.day
+  ).toList();
+}
+
+// 按标签获取想法
+Future<List<Idea>> getIdeasByTag(String tag) async {
+  final allIdeas = await LocalStorageService.loadIdeas();
+  return allIdeas.where((idea) => idea.tags.contains(tag)).toList();
+}
 ```
 
 ### 3.3 更新想法记录
-```javascript
-// 请求
-PUT /rest/v1/ideas?id=eq.{idea_id}
-Authorization: Bearer {access_token}
-Content-Type: application/json
-
-{
-  "title": "更新的标题",
-  "content": "更新的内容",
-  "tags": ["updated", "tags"]
+```dart
+// 更新想法
+Future<void> updateIdea(Idea idea) async {
+  await LocalStorageService.updateIdea(idea);
 }
 
-// 响应
-{
-  "id": "uuid",
-  "title": "更新的标题",
-  "content": "更新的内容",
-  "tags": ["updated", "tags"],
-  "updated_at": "2024-12-01T11:00:00Z"
+// 删除想法
+Future<void> deleteIdea(String ideaId) async {
+  await LocalStorageService.deleteIdea(ideaId);
+}
+
+// 搜索想法
+Future<List<Idea>> searchIdeas(String query) async {
+  final allIdeas = await LocalStorageService.loadIdeas();
+  return allIdeas.where((idea) =>
+    idea.title.toLowerCase().contains(query.toLowerCase()) ||
+    idea.content.toLowerCase().contains(query.toLowerCase()) ||
+    idea.tags.any((tag) => tag.toLowerCase().contains(query.toLowerCase()))
+  ).toList();
 }
 ```
 

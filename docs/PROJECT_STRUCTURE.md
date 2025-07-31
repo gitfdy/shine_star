@@ -49,10 +49,6 @@ lib/
 │       ├── tab_navigator.dart
 │       └── drawer_navigator.dart
 ├── pages/                      # 页面组件
-│   ├── auth/                   # 认证页面
-│   │   ├── login_page.dart
-│   │   ├── register_page.dart
-│   │   └── profile_page.dart
 │   ├── main/                   # 主要页面
 │   │   ├── home_page.dart
 │   │   ├── record_page.dart
@@ -60,7 +56,7 @@ lib/
 │   │   └── analysis_page.dart
 │   ├── settings/               # 设置页面
 │   │   ├── settings_page.dart
-│   │   ├── subscription_page.dart
+│   │   ├── backup_page.dart
 │   │   └── language_page.dart
 │   └── detail/                 # 详情页面
 │       ├── idea_detail_page.dart
@@ -71,19 +67,16 @@ lib/
 │   ├── auth_navigator.dart
 │   ├── main_navigator.dart
 │   └── navigation_utils.dart
-├── services/                   # API 服务
-│   ├── supabase_service.dart   # Supabase 客户端配置
-│   ├── auth_service.dart       # 认证服务
-│   ├── storage_service.dart    # 文件存储服务
+├── services/                   # 服务层
+│   ├── storage_service.dart    # 本地存储服务
 │   ├── ai_service.dart         # AI 分析服务
-│   ├── payment_service.dart    # 支付服务
-│   └── api_service.dart        # 通用 API 服务
+│   ├── backup_service.dart     # 数据备份服务
+│   └── file_service.dart       # 本地文件服务
 ├── controllers/                # GetX 状态管理
-│   ├── auth_controller.dart    # 认证控制器
 │   ├── ideas_controller.dart   # 想法记录控制器
 │   ├── analysis_controller.dart # 分析控制器
 │   ├── settings_controller.dart # 设置控制器
-│   └── subscription_controller.dart # 订阅控制器
+│   └── backup_controller.dart  # 备份控制器
 ├── utils/                      # 工具函数
 │   ├── constants.dart          # 常量定义
 │   ├── helpers.dart            # 通用工具函数
@@ -92,10 +85,10 @@ lib/
 │   ├── formatters.dart         # 数据格式化
 │   └── analytics.dart          # 数据分析
 ├── models/                     # 数据模型
-│   ├── user.dart               # 用户模型
 │   ├── idea.dart               # 想法模型
 │   ├── analysis.dart           # 分析模型
-│   └── subscription.dart       # 订阅模型
+│   ├── settings.dart           # 设置模型
+│   └── backup.dart             # 备份模型
 ├── config/                     # 配置文件
 │   ├── app_config.dart         # 应用配置
 │   ├── api_config.dart         # API 配置
