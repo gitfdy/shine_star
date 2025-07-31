@@ -9,14 +9,14 @@
 - **字符编码**: UTF-8
 
 ### 1.2 认证流程
-```javascript
+```dart
 // 获取访问令牌
-const { data, error } = await supabase.auth.getSession();
-const accessToken = data.session?.access_token;
+final session = await Supabase.instance.client.auth.currentSession;
+final accessToken = session?.accessToken;
 
 // 在请求头中使用
-const headers = {
-  'Authorization': `Bearer ${accessToken}`,
+final headers = {
+  'Authorization': 'Bearer $accessToken',
   'Content-Type': 'application/json'
 };
 ```
@@ -460,26 +460,26 @@ Content-Type: application/json
 | `INTERNAL_ERROR` | 500 | 服务器内部错误 |
 
 ### 7.3 错误处理示例
-```javascript
+```dart
 // 客户端错误处理
 try {
-  const { data, error } = await supabase
+  final response = await Supabase.instance.client
     .from('ideas')
     .insert(newIdea);
   
-  if (error) {
-    switch (error.code) {
+  if (response.error != null) {
+    switch (response.error!.code) {
       case 'AUTH_REQUIRED':
         // 重新登录
         await handleReauth();
         break;
       case 'VALIDATION_ERROR':
         // 显示验证错误
-        showValidationError(error.details);
+        showValidationError(response.error!.details);
         break;
       default:
         // 显示通用错误
-        showError(error.message);
+        showError(response.error!.message);
     }
   }
 } catch (err) {
@@ -491,21 +491,20 @@ try {
 ## 8. 实时功能
 
 ### 8.1 实时订阅
-```javascript
+```dart
 // 订阅想法记录变化
-const subscription = supabase
+final subscription = Supabase.instance.client
   .channel('ideas')
-  .on('postgres_changes', {
-    event: '*',
+  .onPostgresChanges(
+    event: PostgresChangeEvent.all,
     schema: 'public',
     table: 'ideas',
-    filter: `user_id=eq.${userId}`
-  }, (payload) => {
-    console.log('想法记录变化:', payload);
+    filter: PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'user_id', value: userId),
+  ).listen((payload) {
+    print('想法记录变化: $payload');
     // 更新UI
     updateIdeasList(payload);
-  })
-  .subscribe();
+  });
 ```
 
 ### 8.2 分析进度更新
@@ -529,13 +528,13 @@ const analysisSubscription = supabase
 ## 9. 性能优化
 
 ### 9.1 分页查询
-```javascript
+```dart
 // 分页获取想法列表
-const { data, error } = await supabase
+final response = await Supabase.instance.client
   .from('ideas')
   .select('*')
   .eq('user_id', userId)
-  .order('created_at', { ascending: false })
+  .order('created_at', ascending: false)
   .range(0, 19); // 每页20条
 ```
 

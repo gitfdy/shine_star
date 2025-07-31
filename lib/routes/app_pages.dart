@@ -37,4 +37,4 @@ class AppPages {
       page: () => const DemoPage(),
     ),
   ];
-} 
+}

@@ -4,7 +4,7 @@
 
 ### 1.1 整体架构
 ```
-移动端 App (React Native)
+移动端 App (Flutter)
     ↓
 Supabase Auth (认证)
     ↓
@@ -23,7 +23,7 @@ Supabase Database (数据存储)
 ### 1.2 技术栈选择理由
 | 技术 | 选择理由 | 替代方案 |
 |------|----------|----------|
-| React Native | 跨平台开发，社区活跃 | Flutter, Ionic |
+| Flutter | 跨平台开发，性能优秀，UI一致性好 | React Native, Ionic |
 | Supabase | 快速开发，内置认证和实时功能 | Firebase, AWS |
 | OpenAI GPT-4 | AI分析能力强，API稳定 | Claude, PaLM |
 | Google Pay | 欧美用户偏好，集成简单 | Stripe, PayPal |
@@ -32,80 +32,85 @@ Supabase Database (数据存储)
 
 ### 2.1 项目结构
 ```
-src/
+lib/
 ├── components/        # 可复用组件
-│   ├── VoiceRecorder.js
-│   ├── CameraCapture.js
-│   ├── TextInput.js
-│   └── IdeaCard.js
-├── screens/          # 页面组件
-│   ├── HomeScreen.js
-│   ├── RecordScreen.js
-│   ├── DetailScreen.js
-│   ├── AnalysisScreen.js
-│   └── SettingsScreen.js
+│   ├── voice_recorder.dart
+│   ├── camera_capture.dart
+│   ├── text_input.dart
+│   └── idea_card.dart
+├── pages/            # 页面组件
+│   ├── home_page.dart
+│   ├── record_page.dart
+│   ├── detail_page.dart
+│   ├── analysis_page.dart
+│   └── settings_page.dart
 ├── navigation/       # 导航配置
-│   └── AppNavigator.js
+│   └── app_navigator.dart
 ├── services/         # API服务
-│   ├── supabase.js
-│   ├── auth.js
-│   ├── storage.js
-│   └── ai.js
-├── store/           # Redux状态管理
-│   ├── index.js
-│   ├── authSlice.js
-│   └── ideasSlice.js
+│   ├── supabase_service.dart
+│   ├── auth_service.dart
+│   ├── storage_service.dart
+│   └── ai_service.dart
+├── controllers/      # GetX状态管理
+│   ├── auth_controller.dart
+│   ├── ideas_controller.dart
+│   └── analysis_controller.dart
 ├── utils/           # 工具函数
-│   ├── constants.js
-│   ├── helpers.js
-│   └── permissions.js
+│   ├── constants.dart
+│   ├── helpers.dart
+│   └── permissions.dart
 └── assets/          # 静态资源
     ├── images/
     └── icons/
 ```
 
 ### 2.2 状态管理
-```javascript
-// Redux Store 结构
-const store = {
-  auth: {
-    user: null,
-    isAuthenticated: false,
-    loading: false
-  },
-  ideas: {
-    items: [],
-    loading: false,
-    error: null
-  },
-  analysis: {
-    currentAnalysis: null,
-    loading: false,
-    error: null
-  },
-  settings: {
-    language: 'en',
-    notifications: true,
-    autoSync: true
-  }
-};
+```dart
+// GetX 状态管理结构
+class AuthController extends GetxController {
+  final user = Rxn<User>();
+  final isAuthenticated = false.obs;
+  final loading = false.obs;
+}
+
+class IdeasController extends GetxController {
+  final items = <Idea>[].obs;
+  final loading = false.obs;
+  final error = Rxn<String>();
+}
+
+class AnalysisController extends GetxController {
+  final currentAnalysis = Rxn<Analysis>();
+  final loading = false.obs;
+  final error = Rxn<String>();
+}
+
+class SettingsController extends GetxController {
+  final language = 'en'.obs;
+  final notifications = true.obs;
+  final autoSync = true.obs;
+}
 ```
 
 ## 3. 后端架构
 
 ### 3.1 Supabase 配置
-```javascript
+```dart
 // Supabase 客户端配置
-const supabaseConfig = {
-  url: process.env.SUPABASE_URL,
-  anonKey: process.env.SUPABASE_ANON_KEY,
-  auth: {
-    storage: AsyncStorage,
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false,
+class SupabaseService {
+  static final SupabaseClient _client = SupabaseClient(
+    'YOUR_SUPABASE_URL',
+    'YOUR_SUPABASE_ANON_KEY',
+  );
+  
+  static SupabaseClient get client => _client;
+  
+  static Future<void> initialize() async {
+    await _client.auth.onAuthStateChange.listen((data, session) {
+      // 处理认证状态变化
+    });
   }
-};
+}
 ```
 
 ### 3.2 数据库设计
@@ -139,146 +144,171 @@ CREATE POLICY "Users can delete own ideas" ON ideas
 ## 4. AI服务架构
 
 ### 4.1 AI服务集成
-```javascript
+```dart
 // AI服务配置
-const aiServices = {
-  openai: {
-    apiKey: process.env.OPENAI_API_KEY,
-    model: 'gpt-4',
-    maxTokens: 1000,
-    temperature: 0.7
-  },
-  googleSpeech: {
-    apiKey: process.env.GOOGLE_SPEECH_API_KEY,
-    language: 'en-US',
-    autoLanguageDetection: true
-  },
-  googleVision: {
-    apiKey: process.env.GOOGLE_VISION_API_KEY,
-    features: ['TEXT_DETECTION', 'DOCUMENT_TEXT_DETECTION']
-  }
-};
+class AIService {
+  static const String _openaiApiKey = 'YOUR_OPENAI_API_KEY';
+  static const String _googleSpeechApiKey = 'YOUR_GOOGLE_SPEECH_API_KEY';
+  static const String _googleVisionApiKey = 'YOUR_GOOGLE_VISION_API_KEY';
+  
+  static final Map<String, dynamic> openaiConfig = {
+    'apiKey': _openaiApiKey,
+    'model': 'gpt-4',
+    'maxTokens': 1000,
+    'temperature': 0.7,
+  };
+  
+  static final Map<String, dynamic> googleSpeechConfig = {
+    'apiKey': _googleSpeechApiKey,
+    'language': 'en-US',
+    'autoLanguageDetection': true,
+  };
+  
+  static final Map<String, dynamic> googleVisionConfig = {
+    'apiKey': _googleVisionApiKey,
+    'features': ['TEXT_DETECTION', 'DOCUMENT_TEXT_DETECTION'],
+  };
+}
 ```
 
 ### 4.2 AI分析流程
-```javascript
+```dart
 // AI分析流程
-const aiAnalysisFlow = {
+class AIAnalysisFlow {
   // 1. 内容预处理
-  preprocess: (content) => {
-    return cleanAndFormatContent(content);
-  },
+  static String preprocess(String content) {
+    return _cleanAndFormatContent(content);
+  }
 
   // 2. 批量分析
-  batchAnalyze: async (records) => {
-    const combinedContent = records.map(record => 
-      `${record.content_type}: ${record.content || record.transcript || record.ocr_text}`
+  static Future<Map<String, dynamic>> batchAnalyze(List<Record> records) async {
+    final combinedContent = records.map((record) => 
+      '${record.contentType}: ${record.content ?? record.transcript ?? record.ocrText}'
     ).join('\n\n');
     
-    return await callOpenAI('comprehensive_analysis', combinedContent);
-  },
+    return await _callOpenAI('comprehensive_analysis', combinedContent);
+  }
 
   // 3. 结果后处理
-  postprocess: (analysis) => {
-    return structureAnalysisResults(analysis);
+  static Map<String, dynamic> postprocess(Map<String, dynamic> analysis) {
+    return _structureAnalysisResults(analysis);
   }
-};
+  
+  static String _cleanAndFormatContent(String content) {
+    // 清理和格式化内容
+    return content.trim();
+  }
+  
+  static Future<Map<String, dynamic>> _callOpenAI(String type, String content) async {
+    // 调用OpenAI API
+    return {};
+  }
+  
+  static Map<String, dynamic> _structureAnalysisResults(Map<String, dynamic> analysis) {
+    // 结构化分析结果
+    return analysis;
+  }
+}
 ```
 
 ## 5. 支付架构
 
 ### 5.1 Google Pay 集成
-```javascript
+```dart
 // Google Pay 配置
-const googlePayConfig = {
-  environment: 'TEST', // 或 'PRODUCTION'
-  merchantInfo: {
-    merchantName: 'ShineStar',
-    merchantId: 'your-merchant-id'
-  },
-  paymentMethods: [{
-    type: 'CARD',
-    parameters: {
-      allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
-      allowedCardNetworks: ['VISA', 'MASTERCARD', 'AMEX']
-    }
-  }]
-};
+class GooglePayConfig {
+  static const Map<String, dynamic> config = {
+    'environment': 'TEST', // 或 'PRODUCTION'
+    'merchantInfo': {
+      'merchantName': 'ShineStar',
+      'merchantId': 'your-merchant-id'
+    },
+    'paymentMethods': [
+      {
+        'type': 'CARD',
+        'parameters': {
+          'allowedAuthMethods': ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+          'allowedCardNetworks': ['VISA', 'MASTERCARD', 'AMEX']
+        }
+      }
+    ]
+  };
+}
 ```
 
 ### 5.2 订阅管理
-```javascript
+```dart
 // 订阅状态管理
-const subscriptionManager = {
+class SubscriptionManager {
   // 检查订阅状态
-  checkSubscription: async (userId) => {
-    const { data } = await supabase
-      .from('users')
-      .select('subscription_status, subscription_end')
-      .eq('id', userId)
-      .single();
+  static Future<Map<String, dynamic>?> checkSubscription(String userId) async {
+    final response = await SupabaseService.client
+        .from('users')
+        .select('subscription_status, subscription_end')
+        .eq('id', userId)
+        .single();
     
-    return data;
-  },
+    return response;
+  }
 
   // 更新订阅状态
-  updateSubscription: async (userId, status, endDate) => {
-    await supabase
-      .from('users')
-      .update({
-        subscription_status: status,
-        subscription_end: endDate
-      })
-      .eq('id', userId);
+  static Future<void> updateSubscription(String userId, String status, String endDate) async {
+    await SupabaseService.client
+        .from('users')
+        .update({
+          'subscription_status': status,
+          'subscription_end': endDate
+        })
+        .eq('id', userId);
   }
-};
+}
 ```
 
 ## 6. 性能优化
 
 ### 6.1 前端优化
-```javascript
+```dart
 // 性能优化策略
-const performanceOptimizations = {
+class PerformanceOptimizations {
   // 图片懒加载
-  lazyLoading: {
-    threshold: 0.1,
-    rootMargin: '50px'
-  },
+  static const Map<String, dynamic> lazyLoading = {
+    'threshold': 0.1,
+    'rootMargin': '50px'
+  };
 
   // 内存管理
-  memoryManagement: {
-    maxCacheSize: 100,
-    cleanupInterval: 300000 // 5分钟
-  },
+  static const Map<String, dynamic> memoryManagement = {
+    'maxCacheSize': 100,
+    'cleanupInterval': 300000 // 5分钟
+  };
 
   // 网络优化
-  networkOptimization: {
-    requestTimeout: 10000,
-    retryAttempts: 3,
-    offlineSupport: true
-  }
-};
+  static const Map<String, dynamic> networkOptimization = {
+    'requestTimeout': 10000,
+    'retryAttempts': 3,
+    'offlineSupport': true
+  };
+}
 ```
 
 ### 6.2 后端优化
-```javascript
+```dart
 // 数据库优化
-const databaseOptimizations = {
+class DatabaseOptimizations {
   // 索引优化
-  indexes: [
+  static const List<String> indexes = [
     'CREATE INDEX idx_ideas_user_date ON ideas(user_id, date)',
     'CREATE INDEX idx_ideas_created_at ON ideas(created_at)',
     'CREATE INDEX idx_ai_analyses_idea_id ON ai_analyses(idea_id)'
-  ],
+  ];
 
   // 查询优化
-  queryOptimizations: {
-    limitResults: 50,
-    usePagination: true,
-    cacheQueries: true
-  }
-};
+  static const Map<String, dynamic> queryOptimizations = {
+    'limitResults': 50,
+    'usePagination': true,
+    'cacheQueries': true
+  };
+}
 ```
 
 ## 7. 安全架构

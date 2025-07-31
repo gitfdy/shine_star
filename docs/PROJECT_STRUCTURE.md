@@ -5,119 +5,114 @@
 ```
 ShineStar/
 ├── README.md                    # 项目主文档
-├── package.json                 # 项目依赖配置
-├── app.json                    # Expo 应用配置
-├── babel.config.js             # Babel 配置
-├── metro.config.js             # Metro 打包配置
+├── pubspec.yaml                 # 项目依赖配置
+├── pubspec.lock                 # 依赖锁定文件
+├── analysis_options.yaml        # Dart 分析配置
 ├── .env                        # 环境变量
 ├── .gitignore                  # Git 忽略文件
-├── .eslintrc.js               # ESLint 配置
-├── .prettierrc                # Prettier 配置
 ├── docs/                       # 项目文档
 │   ├── TECHNICAL_ARCHITECTURE.md
 │   ├── DEVELOPMENT_PLAN.md
 │   ├── API_SPECIFICATION.md
 │   └── PROJECT_STRUCTURE.md
-├── src/                        # 源代码目录
+├── lib/                        # 源代码目录
 ├── android/                    # Android 原生代码
 ├── ios/                        # iOS 原生代码
+├── macos/                      # macOS 原生代码
+├── windows/                    # Windows 原生代码
 └── assets/                     # 静态资源
 ```
 
 ## 2. 源代码目录结构
 
 ```
-src/
-├── App.js                      # 应用入口文件
+lib/
+├── main.dart                   # 应用入口文件
 ├── components/                 # 可复用组件
 │   ├── common/                 # 通用组件
-│   │   ├── Button.js
-│   │   ├── Input.js
-│   │   ├── Modal.js
-│   │   ├── Loading.js
-│   │   └── ErrorBoundary.js
+│   │   ├── button.dart
+│   │   ├── input.dart
+│   │   ├── modal.dart
+│   │   ├── loading.dart
+│   │   └── error_boundary.dart
 │   ├── recording/              # 记录相关组件
-│   │   ├── VoiceRecorder.js
-│   │   ├── CameraCapture.js
-│   │   ├── TextInput.js
-│   │   └── MediaUploader.js
+│   │   ├── voice_recorder.dart
+│   │   ├── camera_capture.dart
+│   │   ├── text_input.dart
+│   │   └── media_uploader.dart
 │   ├── display/                # 展示相关组件
-│   │   ├── IdeaCard.js
-│   │   ├── TimelineView.js
-│   │   ├── AnalysisReport.js
-│   │   └── ActionPlan.js
+│   │   ├── idea_card.dart
+│   │   ├── timeline_view.dart
+│   │   ├── analysis_report.dart
+│   │   └── action_plan.dart
 │   └── navigation/             # 导航组件
-│       ├── TabNavigator.js
-│       └── DrawerNavigator.js
-├── screens/                    # 页面组件
+│       ├── tab_navigator.dart
+│       └── drawer_navigator.dart
+├── pages/                      # 页面组件
 │   ├── auth/                   # 认证页面
-│   │   ├── LoginScreen.js
-│   │   ├── RegisterScreen.js
-│   │   └── ProfileScreen.js
+│   │   ├── login_page.dart
+│   │   ├── register_page.dart
+│   │   └── profile_page.dart
 │   ├── main/                   # 主要页面
-│   │   ├── HomeScreen.js
-│   │   ├── RecordScreen.js
-│   │   ├── TimelineScreen.js
-│   │   └── AnalysisScreen.js
+│   │   ├── home_page.dart
+│   │   ├── record_page.dart
+│   │   ├── timeline_page.dart
+│   │   └── analysis_page.dart
 │   ├── settings/               # 设置页面
-│   │   ├── SettingsScreen.js
-│   │   ├── SubscriptionScreen.js
-│   │   └── LanguageScreen.js
+│   │   ├── settings_page.dart
+│   │   ├── subscription_page.dart
+│   │   └── language_page.dart
 │   └── detail/                 # 详情页面
-│       ├── IdeaDetailScreen.js
-│       ├── AnalysisDetailScreen.js
-│       └── ActionPlanScreen.js
+│       ├── idea_detail_page.dart
+│       ├── analysis_detail_page.dart
+│       └── action_plan_page.dart
 ├── navigation/                 # 导航配置
-│   ├── AppNavigator.js
-│   ├── AuthNavigator.js
-│   ├── MainNavigator.js
-│   └── navigationUtils.js
+│   ├── app_navigator.dart
+│   ├── auth_navigator.dart
+│   ├── main_navigator.dart
+│   └── navigation_utils.dart
 ├── services/                   # API 服务
-│   ├── supabase.js            # Supabase 客户端配置
-│   ├── auth.js                # 认证服务
-│   ├── storage.js             # 文件存储服务
-│   ├── ai.js                  # AI 分析服务
-│   ├── payment.js             # 支付服务
-│   └── api.js                 # 通用 API 服务
-├── store/                     # Redux 状态管理
-│   ├── index.js               # Store 配置
-│   ├── authSlice.js           # 认证状态
-│   ├── ideasSlice.js          # 想法记录状态
-│   ├── analysisSlice.js       # 分析状态
-│   ├── settingsSlice.js       # 设置状态
-│   └── middleware/            # 中间件
-│       ├── logger.js
-│       └── persist.js
-├── utils/                     # 工具函数
-│   ├── constants.js           # 常量定义
-│   ├── helpers.js             # 通用工具函数
-│   ├── permissions.js         # 权限管理
-│   ├── validation.js          # 数据验证
-│   ├── formatters.js          # 数据格式化
-│   └── analytics.js           # 数据分析
-├── hooks/                     # 自定义 Hooks
-│   ├── useAuth.js
-│   ├── useIdeas.js
-│   ├── useAnalysis.js
-│   ├── useSubscription.js
-│   └── usePermissions.js
-├── config/                    # 配置文件
-│   ├── app.js                 # 应用配置
-│   ├── api.js                 # API 配置
-│   ├── storage.js             # 存储配置
-│   └── theme.js               # 主题配置
-├── assets/                    # 静态资源
-│   ├── images/                # 图片资源
-│   │   ├── icons/             # 图标
-│   │   ├── logos/             # Logo
-│   │   └── backgrounds/       # 背景图
-│   ├── fonts/                 # 字体文件
-│   └── sounds/                # 音频文件
-└── styles/                    # 样式文件
-    ├── theme.js               # 主题定义
-    ├── colors.js              # 颜色定义
-    ├── typography.js          # 字体样式
-    └── common.js              # 通用样式
+│   ├── supabase_service.dart   # Supabase 客户端配置
+│   ├── auth_service.dart       # 认证服务
+│   ├── storage_service.dart    # 文件存储服务
+│   ├── ai_service.dart         # AI 分析服务
+│   ├── payment_service.dart    # 支付服务
+│   └── api_service.dart        # 通用 API 服务
+├── controllers/                # GetX 状态管理
+│   ├── auth_controller.dart    # 认证控制器
+│   ├── ideas_controller.dart   # 想法记录控制器
+│   ├── analysis_controller.dart # 分析控制器
+│   ├── settings_controller.dart # 设置控制器
+│   └── subscription_controller.dart # 订阅控制器
+├── utils/                      # 工具函数
+│   ├── constants.dart          # 常量定义
+│   ├── helpers.dart            # 通用工具函数
+│   ├── permissions.dart        # 权限管理
+│   ├── validation.dart         # 数据验证
+│   ├── formatters.dart         # 数据格式化
+│   └── analytics.dart          # 数据分析
+├── models/                     # 数据模型
+│   ├── user.dart               # 用户模型
+│   ├── idea.dart               # 想法模型
+│   ├── analysis.dart           # 分析模型
+│   └── subscription.dart       # 订阅模型
+├── config/                     # 配置文件
+│   ├── app_config.dart         # 应用配置
+│   ├── api_config.dart         # API 配置
+│   ├── storage_config.dart     # 存储配置
+│   └── theme_config.dart       # 主题配置
+├── assets/                     # 静态资源
+│   ├── images/                 # 图片资源
+│   │   ├── icons/              # 图标
+│   │   ├── logos/              # Logo
+│   │   └── backgrounds/        # 背景图
+│   ├── fonts/                  # 字体文件
+│   └── sounds/                 # 音频文件
+└── styles/                     # 样式文件
+    ├── theme.dart              # 主题定义
+    ├── colors.dart             # 颜色定义
+    ├── typography.dart         # 字体样式
+    └── common.dart             # 通用样式
 ```
 
 ## 3. 组件详细结构
