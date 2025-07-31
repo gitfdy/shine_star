@@ -4,6 +4,7 @@ import '../controllers/auth_controller.dart';
 import '../pages/home_page.dart';
 import '../pages/login_page.dart';
 import '../pages/splash_page.dart';
+import '../pages/demo_page.dart';
 
 part 'app_routes.dart';
 
@@ -30,6 +31,10 @@ class AppPages {
       binding: BindingsBuilder(() {
         Get.lazyPut<AuthController>(() => AuthController());
       }),
+    ),
+    GetPage(
+      name: Routes.DEMO,
+      page: () => const DemoPage(),
     ),
   ];
 } 

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/home_controller.dart';
 import '../controllers/auth_controller.dart';
+import '../utils/screen_util.dart';
+import '../widgets/responsive_widget.dart';
 
 class HomePage extends GetView<HomeController> {
   const HomePage({super.key});
@@ -15,49 +17,79 @@ class HomePage extends GetView<HomeController> {
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
             onPressed: () {
               Get.find<AuthController>().logout();
             },
           ),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.star,
-              size: 100,
-              color: Colors.deepPurple,
-            ),
-            const SizedBox(height: 20),
-            Text(
-              '欢迎来到 Shine Star!',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+      body: ResponsiveContainer(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.star,
+                size: 100.w,
                 color: Colors.deepPurple,
               ),
-            ),
-            const SizedBox(height: 30),
-            Obx(() => Text(
-              '点击次数: ${controller.count.value}',
-              style: TextStyle(fontSize: 18),
-            )),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: controller.increment,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+              AdaptiveSpacing(height: 20),
+              AdaptiveText(
+                '欢迎来到 Shine Star!',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.deepPurple,
+                ),
               ),
-              child: Text('点击我'),
+              AdaptiveSpacing(height: 30),
+              Obx(() => AdaptiveText(
+                    '点击次数: ${controller.count.value}',
+                    style: TextStyle(fontSize: 18),
+                  )),
+              AdaptiveSpacing(height: 20),
+                          SizedBox(
+              height: 50.h,
+              child: ElevatedButton(
+                onPressed: controller.increment,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 15.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                ),
+                child: AdaptiveText(
+                  '点击我',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
             ),
-          ],
+            AdaptiveSpacing(height: 20),
+            SizedBox(
+              height: 50.h,
+              child: ElevatedButton(
+                onPressed: () => Get.toNamed('/demo'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 15.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                ),
+                child: AdaptiveText(
+                  'UI适配演示',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            ),
+            ],
+          ),
         ),
       ),
     );
   }
-} 
+}
