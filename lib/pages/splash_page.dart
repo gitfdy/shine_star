@@ -22,7 +22,9 @@ class _SplashPageState extends State<SplashPage> {
     // 3秒后移除启动画面并跳转
     Future.delayed(const Duration(seconds: 3), () {
       FlutterNativeSplash.remove();
-      Get.offAllNamed('/login');
+      // TODO: 检查是否首次使用，如果是则跳转到引导页，否则跳转到首页
+      // 暂时直接跳转到引导页
+      Get.offAllNamed('/onboarding');
     });
   }
 
